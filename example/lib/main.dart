@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rapid_craft/rapid_craft.dart';
+import 'package:rapid_craft/rapid_craft.dart'; // Make sure this import is present
 
 void main() {
   runApp(const MyApp());
@@ -30,14 +30,25 @@ class MyWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 100),
-            "Hello, RcBox!".show(),
-            RcBox()
-                .width(150)
-                .height(200)
-                .cyan400
-                .vp16
-                .hp16
-                .show()
+            "Hello".linearGradient([Colors.red, Colors.blue]).show(),
+            "Ke re".linearGradient([Colors.red, Colors.blue]).onTap((){
+              print("Ke re");
+            }).textSpan(
+              "Hello".linearGradient([Colors.brown, Colors.green]).onTap((){
+                print("Hello");
+              }),
+            ).textSpan(
+              "Hefffffllo".linearGradient([Colors.orange, Colors.green]).onTap((){
+                print("Hefffffllo");
+              }),
+            ).show(),
+            "Gradient".sweepGradient([Colors.purple, Colors.orange]).show(),
+            "Gradient".linearGradient([Colors.purple, Colors.orange]).show(),
+         RcBox()
+         .height(50)
+         .width(50)
+         .amber
+         .show(),
           ],
         ),
       ),

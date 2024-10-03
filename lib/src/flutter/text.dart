@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'mixins/rc_color_mixin.dart';
 import 'mixins/padding_mixin.dart';
 
 class _TextSegment {
-  String text;
+  dynamic content;
   TextStyle style;
   Gradient? gradient;
   VoidCallback? onTap;
 
-  _TextSegment(this.text,
+  _TextSegment(this.content,
       {this.style = const TextStyle(), this.gradient, this.onTap});
 }
 
@@ -32,7 +33,7 @@ class RcText with RcColorMixin<RcText>, PaddingMixin<RcText> {
   String? _fontFamily;
 
   RcText(String text) {
-    _segments.add(_TextSegment(text, style: TextStyle(fontSize: 16))); // Default font size
+    _segments.add(_TextSegment(text, style: const TextStyle(fontSize: 16)));
   }
 
   RcText _updateCurrentSegment(void Function(_TextSegment) update) {
@@ -66,8 +67,11 @@ class RcText with RcColorMixin<RcText>, PaddingMixin<RcText> {
     return this;
   }
 
-  RcText size(double size) => _updateCurrentSegment(
-      (segment) => segment.style = segment.style.copyWith(fontSize: size));
+  RcText size(double size) {
+    return _updateCurrentSegment((segment) {
+      segment.style = segment.style.copyWith(fontSize: size);
+    });
+  }
 
   RcText get center {
     _alignment = TextAlign.center;
@@ -95,8 +99,64 @@ class RcText with RcColorMixin<RcText>, PaddingMixin<RcText> {
     });
   }
 
-  RcText textSpan(String text) {
-    _segments.add(_TextSegment(text));
+  RcText radialGradient(
+    List<Color> colors, {
+    AlignmentGeometry center = Alignment.center,
+    double radius = 0.5,
+    List<double>? stops,
+    TileMode tileMode = TileMode.clamp,
+    AlignmentGeometry? focal,
+    double focalRadius = 0.0,
+    GradientTransform? transform,
+  }) {
+    return _updateCurrentSegment((segment) {
+      segment.gradient = RadialGradient(
+        colors: colors,
+        center: center,
+        radius: radius,
+        stops: stops,
+        tileMode: tileMode,
+        focal: focal,
+        focalRadius: focalRadius,
+        transform: transform,
+      );
+      segment.style = segment.style.copyWith(color: null);
+    });
+  }
+
+  RcText sweepGradient(
+    List<Color> colors, {
+    AlignmentGeometry center = Alignment.center,
+    double startAngle = 0.0,
+    double endAngle = math.pi * 2,
+    List<double>? stops,
+    TileMode tileMode = TileMode.clamp,
+    GradientTransform? transform,
+  }) {
+    return _updateCurrentSegment((segment) {
+      segment.gradient = SweepGradient(
+        colors: colors,
+        center: center,
+        startAngle: startAngle,
+        endAngle: endAngle,
+        stops: stops,
+        tileMode: tileMode,
+        transform: transform,
+      );
+      segment.style = segment.style.copyWith(color: null);
+    });
+  }
+
+  RcText textSpan(dynamic content) {
+    if (content is String) {
+      _segments.add(_TextSegment(content));
+    } else if (content is Widget) {
+      _segments.add(_TextSegment(content));
+    } else if (content is RcText) {
+      _segments.addAll(content._segments);
+    } else {
+      _segments.add(_TextSegment(content.toString()));
+    }
     return this;
   }
 
@@ -104,37 +164,37 @@ class RcText with RcColorMixin<RcText>, PaddingMixin<RcText> {
     return _updateCurrentSegment((segment) => segment.onTap = callback);
   }
 
-
   RcText toUpperCase() => _updateCurrentSegment(
-      (segment) => segment.text = segment.text.toUpperCase());
+      (segment) => segment.content = segment.content.toUpperCase());
   RcText toLowerCase() => _updateCurrentSegment(
-      (segment) => segment.text = segment.text.toLowerCase());
-  RcText capitalize() => _updateCurrentSegment(
-      (segment) => segment.text = StringExtension(segment.text).capitalize());
-  RcText trim() =>
-      _updateCurrentSegment((segment) => segment.text = segment.text.trim());
+      (segment) => segment.content = segment.content.toLowerCase());
+  RcText capitalize() => _updateCurrentSegment((segment) =>
+      segment.content = StringExtension(segment.content).capitalize());
+  RcText trim() => _updateCurrentSegment(
+      (segment) => segment.content = segment.content.trim());
   RcText removeSpaces() => _updateCurrentSegment(
-      (segment) => segment.text = segment.text.replaceAll(' ', ''));
+      (segment) => segment.content = segment.content.replaceAll(' ', ''));
   RcText removeAllSpaces() => _updateCurrentSegment((segment) =>
-      segment.text = StringExtension(segment.text).removeAllSpaces());
-  RcText stringLength() => _updateCurrentSegment((segment) =>
-      segment.text = StringExtension(segment.text).stringLength().toString());
+      segment.content = StringExtension(segment.content).removeAllSpaces());
+  RcText stringLength() => _updateCurrentSegment((segment) => segment.content =
+      StringExtension(segment.content).stringLength().toString());
   RcText reverseString() => _updateCurrentSegment((segment) =>
-      segment.text = StringExtension(segment.text).reverseString());
-  RcText removeVowels() => _updateCurrentSegment(
-      (segment) => segment.text = StringExtension(segment.text).removeVowels());
+      segment.content = StringExtension(segment.content).reverseString());
+  RcText removeVowels() => _updateCurrentSegment((segment) =>
+      segment.content = StringExtension(segment.content).removeVowels());
   RcText removeConsonants() => _updateCurrentSegment((segment) =>
-      segment.text = StringExtension(segment.text).removeConsonants());
-  RcText removeSpecialCharacters() => _updateCurrentSegment((segment) =>
-      segment.text = StringExtension(segment.text).removeSpecialCharacters());
+      segment.content = StringExtension(segment.content).removeConsonants());
+  RcText removeSpecialCharacters() =>
+      _updateCurrentSegment((segment) => segment.content =
+          StringExtension(segment.content).removeSpecialCharacters());
   RcText removeNumbers() => _updateCurrentSegment((segment) =>
-      segment.text = StringExtension(segment.text).removeNumbers());
+      segment.content = StringExtension(segment.content).removeNumbers());
   RcText removePunctuation() => _updateCurrentSegment((segment) =>
-      segment.text = StringExtension(segment.text).removePunctuation());
-  RcText removeNonAlphanumeric() => _updateCurrentSegment((segment) =>
-      segment.text = StringExtension(segment.text).removeNonAlphanumeric());
-  
-  
+      segment.content = StringExtension(segment.content).removePunctuation());
+  RcText removeNonAlphanumeric() =>
+      _updateCurrentSegment((segment) => segment.content =
+          StringExtension(segment.content).removeNonAlphanumeric());
+
   RcText overflow(TextOverflow overflow) {
     _overflow = overflow;
     return this;
@@ -144,7 +204,6 @@ class RcText with RcColorMixin<RcText>, PaddingMixin<RcText> {
     _maxLines = lines;
     return this;
   }
-
 
   RcText _decorationHidden(TextDecoration decoration) {
     _decoration = decoration;
@@ -181,15 +240,32 @@ class RcText with RcColorMixin<RcText>, PaddingMixin<RcText> {
     return this;
   }
 
-  RcText textBaseline(TextBaseline baseline) {
+  RcText _textBaselineHidden(TextBaseline baseline) {
     _textBaseline = baseline;
     return this;
   }
 
-  RcText fontWeight(FontWeight weight) {
+  // Getters for baselines
+  RcText get alphabetic => _textBaselineHidden(TextBaseline.alphabetic);
+  RcText get ideographic => _textBaselineHidden(TextBaseline.ideographic);
+
+  RcText _fontWeighth(FontWeight weight) {
     _fontWeight = weight;
     return this;
   }
+
+  // Getters for common font weights
+  RcText get bold => _fontWeighth(FontWeight.bold);
+  RcText get normal => _fontWeighth(FontWeight.normal);
+  RcText get w100 => _fontWeighth(FontWeight.w100);
+  RcText get w200 => _fontWeighth(FontWeight.w200);
+  RcText get w300 => _fontWeighth(FontWeight.w300);
+  RcText get w400 => _fontWeighth(FontWeight.w400);
+  RcText get w500 => _fontWeighth(FontWeight.w500);
+  RcText get w600 => _fontWeighth(FontWeight.w600);
+  RcText get w700 => _fontWeighth(FontWeight.w700);
+  RcText get w800 => _fontWeighth(FontWeight.w800);
+  RcText get w900 => _fontWeighth(FontWeight.w900);
 
   RcText fontStyle(FontStyle style) {
     _fontStyle = style;
@@ -207,49 +283,55 @@ class RcText with RcColorMixin<RcText>, PaddingMixin<RcText> {
 
   Widget show() {
     List<Widget> textWidgets = _segments.map((segment) {
-      TextStyle updatedStyle = segment.style.copyWith(
-        decoration: _decoration,
-        decorationColor: _decorationColor,
-        decorationThickness: _decorationThickness,
-        decorationStyle: _decorationStyle,
-        letterSpacing: _letterSpacing,
-        wordSpacing: _wordSpacing,
-        height: _height,
-        textBaseline: _textBaseline,
-        fontWeight: _fontWeight,
-        fontStyle: _fontStyle,
-        fontFamily: _fontFamily,
-      );
+      if (segment.content is String) {
+        TextStyle updatedStyle = segment.style.copyWith(
+          decoration: _decoration,
+          decorationColor: _decorationColor,
+          decorationThickness: _decorationThickness,
+          decorationStyle: _decorationStyle,
+          letterSpacing: _letterSpacing,
+          wordSpacing: _wordSpacing,
+          height: _height,
+          textBaseline: _textBaseline,
+          fontWeight: _fontWeight,
+          fontStyle: _fontStyle,
+          fontFamily: _fontFamily,
+        );
 
-      Widget textWidget;
-      if (segment.gradient != null) {
-        textWidget = ShaderMask(
-          blendMode: BlendMode.srcIn,
-          shaderCallback: (bounds) => segment.gradient!.createShader(bounds),
-          child: Text(
-            segment.text,
-            style: updatedStyle.copyWith(color: Colors.white),
+        Widget textWidget;
+        if (segment.gradient != null) {
+          textWidget = ShaderMask(
+            blendMode: BlendMode.srcIn,
+            shaderCallback: (bounds) => segment.gradient!.createShader(bounds),
+            child: Text(
+              segment.content as String,
+              style: updatedStyle.copyWith(color: Colors.white),
+              overflow: _overflow,
+              maxLines: _maxLines,
+            ),
+          );
+        } else {
+          textWidget = Text(
+            segment.content as String,
+            style: updatedStyle,
             overflow: _overflow,
             maxLines: _maxLines,
-          ),
-        );
+          );
+        }
+
+        if (segment.onTap != null) {
+          textWidget = GestureDetector(
+            onTap: segment.onTap,
+            child: textWidget,
+          );
+        }
+
+        return textWidget;
+      } else if (segment.content is Widget) {
+        return segment.content as Widget;
       } else {
-        textWidget = Text(
-          segment.text,
-          style: updatedStyle,
-          overflow: _overflow,
-          maxLines: _maxLines,
-        );
+        throw StateError('Invalid segment content type');
       }
-
-      if (segment.onTap != null) {
-        textWidget = GestureDetector(
-          onTap: segment.onTap,
-          child: textWidget,
-        );
-      }
-
-      return textWidget;
     }).toList();
 
     Widget resultWidget = textWidgets.length == 1
@@ -354,6 +436,69 @@ extension StringExtension on String {
 extension StringRcTextExtension on String {
   RcText get text => RcText(this);
 
+  // Explicitly define all methods from RcText
+  RcText size(double size) => text.size(size);
+  RcText color(Color color) => text.color(color);
+  RcText get center => text.center;
+  RcText linearGradient(
+    List<Color> colors, {
+    AlignmentGeometry begin = Alignment.centerLeft,
+    AlignmentGeometry end = Alignment.centerRight,
+    List<double>? stops,
+    TileMode tileMode = TileMode.clamp,
+    GradientTransform? transform,
+  }) =>
+      text.linearGradient(
+        colors,
+        begin: begin,
+        end: end,
+        stops: stops,
+        tileMode: tileMode,
+        transform: transform,
+      );
+
+  RcText radialGradient(
+    List<Color> colors, {
+    AlignmentGeometry center = Alignment.center,
+    double radius = 0.5,
+    List<double>? stops,
+    TileMode tileMode = TileMode.clamp,
+    AlignmentGeometry? focal,
+    double focalRadius = 0.0,
+    GradientTransform? transform,
+  }) =>
+      text.radialGradient(
+        colors,
+        center: center,
+        radius: radius,
+        stops: stops,
+        tileMode: tileMode,
+        focal: focal,
+        focalRadius: focalRadius,
+        transform: transform,
+      );
+
+  RcText sweepGradient(
+    List<Color> colors, {
+    AlignmentGeometry center = Alignment.center,
+    double startAngle = 0.0,
+    double endAngle = math.pi * 2,
+    List<double>? stops,
+    TileMode tileMode = TileMode.clamp,
+    GradientTransform? transform,
+  }) =>
+      text.sweepGradient(
+        colors,
+        center: center,
+        startAngle: startAngle,
+        endAngle: endAngle,
+        stops: stops,
+        tileMode: tileMode,
+        transform: transform,
+      );
+
+  // ------------------ Include all other methods from RcText here
+
   RcText toUpperCase() => text.toUpperCase();
   RcText toLowerCase() => text.toLowerCase();
   RcText capitalize() => text.capitalize();
@@ -368,42 +513,39 @@ extension StringRcTextExtension on String {
   RcText removeNumbers() => text.removeNumbers();
   RcText removePunctuation() => text.removePunctuation();
   RcText removeNonAlphanumeric() => text.removeNonAlphanumeric();
-  RcText linearGradient(
-    List<Color> colors, {
-    AlignmentGeometry begin = Alignment.centerLeft,
-    AlignmentGeometry end = Alignment.centerRight,
-    List<double>? stops,
-    TileMode tileMode = TileMode.clamp,
-    GradientTransform? transform,
-  }) =>
-      text.linearGradient(colors,
-          begin: begin,
-          end: end,
-          stops: stops,
-          tileMode: tileMode,
-          transform: transform);
-
-  RcText size(double size) => text.size(size);
-  RcText color(Color color) => text.color(color);
-  RcText get center => text.center;
-  RcText onTap(VoidCallback callback) => (this as RcText).onTap(callback);
-  RcText textSpan(String text) => (this as RcText).textSpan(text);
   RcText overflow(TextOverflow overflow) => text.overflow(overflow);
   RcText maxLines(int lines) => text.maxLines(lines);
-  RcText decoration(TextDecoration decoration) => text._decorationHidden(decoration);
   RcText decorationColor(Color color) => text.decorationColor(color);
-  RcText decorationThickness(double thickness) => text.decorationThickness(thickness);
-  RcText decorationStyle(TextDecorationStyle style) => text.decorationStyle(style);
+  RcText decorationThickness(double thickness) =>
+      text.decorationThickness(thickness);
+  RcText decorationStyle(TextDecorationStyle style) =>
+      text.decorationStyle(style);
   RcText letterSpacing(double spacing) => text.letterSpacing(spacing);
   RcText wordSpacing(double spacing) => text.wordSpacing(spacing);
   RcText height(double height) => text.height(height);
-  RcText textBaseline(TextBaseline baseline) => text.textBaseline(baseline);
-  RcText fontWeight(FontWeight weight) => text.fontWeight(weight);
+  RcText get alphabetic => text.alphabetic;
+  RcText get ideographic => text.ideographic;
+  RcText fontWeight(FontWeight weight) => text._fontWeighth(weight);
   RcText fontStyle(FontStyle style) => text.fontStyle(style);
   RcText fontFamily(String family) => text.fontFamily(family);
   RcText get underline => text.underline;
   RcText get overline => text.overline;
   RcText get lineThrough => text.lineThrough;
-  
-  Widget show() => RcText(this).show();
+
+  // ------------------------Font weight methods
+  RcText get bold => text.bold;
+  RcText get normal => text.normal;
+  RcText get w100 => text.w100;
+  RcText get w200 => text.w200;
+  RcText get w300 => text.w300;
+  RcText get w400 => text.w400;
+  RcText get w500 => text.w500;
+  RcText get w600 => text.w600;
+  RcText get w700 => text.w700;
+  RcText get w800 => text.w800;
+  RcText get w900 => text.w900;
+
+  RcText textSpan(dynamic content) => text.textSpan(content);
+
+  Widget show() => text.show();
 }
